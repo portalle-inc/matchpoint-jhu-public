@@ -1,0 +1,16 @@
+{
+  "extends": "tsconfig/base.json",
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "strict": true,
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "resolveJsonModule": true,
+    "lib": ["es6"],
+    "composite": true
+  }
+}

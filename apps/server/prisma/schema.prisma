@@ -1,0 +1,142 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// TODO: Take out password field
+
+model User {
+  id              String       @id @default(uuid())
+  name            String
+  email           String       @unique
+  password        String
+  role            UserRole
+  isEmailVerified Boolean      @default(false)
+  tokens          Token[]
+  // ======= profile attributes =======
+  institution     Institution? @relation(fields: [institutionId], references: [id])
+  institutionId   String?
+  profilePicture  String?
+  bio             String?
+  studentUser     StudentUser?
+  sponsorUser     SponsorUser?
+}
+
+enum UserRole {
+  STUDENT
+  SPONSOR
+}
+
+model Token {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  type        TokenType
+  expires     DateTime
+  blacklisted Boolean   @default(false)
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+}
+
+enum TokenType {
+  ACCESS
+  REFRESH
+  RESET_PASSWORD
+  VERIFY_EMAIL
+}
+
+model StudentUser {
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String        @id @default(uuid())
+  // ===== profile attributes =====
+  graduationYear    Int?
+  major             String?
+  applications      Application[]
+  followingProjects Project[]
+}
+
+model SponsorUser {
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String    @id @default(uuid())
+  projects Project[]
+}
+
+model Project {
+  id                  String                @id @default(uuid())
+  name                String
+  excerpt             String?
+  description         String?
+  sponsor             SponsorUser           @relation(fields: [sponsorId], references: [userId])
+  sponsorId           String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  applications        Application[]
+  followers           StudentUser[]
+  announcements       ProjectAnnouncement[]
+  // ===== attributes =====
+  applicationDeadline DateTime?
+  startTerm           String?
+  locationType        LocationType?
+  majors              String[]
+  applicationQuestions ProjectApplicationQuestion[]
+}
+
+model ProjectApplicationQuestion {
+  id        String   @id @default(uuid())
+  project   Project  @relation(fields: [id], references: [id], onDelete: Cascade)
+  answers   ApplicationQuestionAnswer[]
+  question  String
+}
+
+model ProjectAnnouncement {
+  id        String   @id @default(uuid())
+  project   Project  @relation(fields: [id], references: [id])
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+enum LocationType {
+  ONSITE
+  REMOTE
+  HYBRID
+}
+
+model Application {
+  id        String            @id @default(uuid())
+  status    ApplicationStatus @default(PENDING)
+  attachments String[]
+  answers   ApplicationQuestionAnswer[]
+  feedback  String?
+  project   Project           @relation(fields: [projectId], references: [id])
+  projectId String
+  student   StudentUser       @relation(fields: [studentId], references: [userId])
+  studentId String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model ApplicationQuestionAnswer {
+  id           String   @id @default(uuid())
+  application  Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  question     ProjectApplicationQuestion @relation(fields: [questionId], references: [id])
+  questionId   String
+  answer       String
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Institution {
+  id     String @id @default(uuid())
+  name   String @unique
+  domain String @unique
+  users  User[]
+}

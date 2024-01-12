@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./apps/server/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: ./apps/server/dist
+        target: /app/apps/server/dist
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - MONGODB_URL=mongodb://mongo:27017/
+    env_file:
+      - ./apps/server/.env
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: portalle-admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpassword
+volumes:
+  mongo:

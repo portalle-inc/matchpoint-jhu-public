@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+### stash all unstaged changes ###
+# temp commit of your staged changes:
+# git commit --message "WIP" --no-verify --no-gpg-sign
+
+# save your working copy changes
+# git diff > temp.patch
+# cp temp.patch temp.patch.bak
+
+# now un-commit your WIP commit:
+# git reset --soft HEAD^
+
+### now operate on staged files ###
+# pnpm lint -- --fix
+
+# git add .
+
+### now revive your unstaged changes ###
+# git apply temp.patch --allow-empty
+
+pnpm pre-commit
+
